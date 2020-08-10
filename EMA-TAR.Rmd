@@ -1,0 +1,63 @@
+---
+title: "COVID-19 EMA/TAR"
+author: "David Jackson"
+date: "8/9/2020"
+output: 
+  html_document: 
+    fig_width: 9
+    fig_height: 7
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+theme_set(theme_light())
+```
+```{r}
+rm(list=ls())
+DF <- read.csv("../DATA/COVID-19-ECDPC-2020-08-09.csv")
+DF$dateRep <- gsub("/","-",DF$dateRep)
+DF$dateRep <- as.Date(DF$dateRep,format="%m-%d-%Y")
+ES <- subset(DF,geoId =="US" & cases >0)
+ES <- ES[c(1,5:8)]
+
+```
+```{r}
+source("../TAR/R/hello.R")
+```
+
+```{r}
+ggplot(ES) + geom_line(aes(x=dateRep,y=cases))
+```
+
+## Calculate movingAverage and EMA
+
+```{r}
+ES$RM <- movingAverage(ES$cases,7,center=TRUE)
+ES$EMA <- myEMA(price=ES$cases,n=7)
+```
+```{r}
+ggplot(ES) + geom_line(aes(x=dateRep,y=cases,col="Cases")) +
+ geom_line(aes(x=dateRep,y=RM,col="Rolling")) +
+#  geom_line(aes(x=dateRep,y=EMA,col="EMS")) + 
+  labs(title="COVID-19 Cases: Rolling Mean vs EMA")
+```
+```{r}
+ES$RMD <- movingAverage(ES$deaths,7,center=TRUE)
+ES$EMAD <- myEMA(price=ES$deaths,n=7)
+```
+```{r}
+ggplot(ES) + geom_line(aes(x=dateRep,y=deaths,col="Deaths")) +
+  geom_line(aes(x=dateRep,y=RMD,col="Rolling")) +
+#  geom_line(aes(x=dateRep,y=EMAD,col="EMS")) + 
+  labs(title="COVID-19 Deaths: Rolling Mean vs EMA")
+```
+```{r}
+ggplot(ES) + geom_line(aes(x=dateRep,y=cases,col="Cases")) +
+  geom_smooth(aes(x=dateRep,y=cases,col="loess"))
+```
+
+```{r}
+ggplot(ES) + geom_line(aes(x=dateRep,y=deaths,col="Deaths")) +
+  geom_smooth(aes(x=dateRep,y=deaths,col="loess"))
+```
