@@ -1,7 +1,7 @@
 ---
 title: "COVID-19 EMA/TAR"
 author: "David Jackson"
-date: "8/9/2020"
+date: "8/10/2020"
 output: 
   html_document: 
     fig_width: 9
@@ -18,7 +18,7 @@ rm(list=ls())
 DF <- read.csv("../DATA/COVID-19-ECDPC-2020-08-09.csv")
 DF$dateRep <- gsub("/","-",DF$dateRep)
 DF$dateRep <- as.Date(DF$dateRep,format="%m-%d-%Y")
-ES <- subset(DF,geoId =="UK" & cases >0)
+ES <- subset(DF,geoId =="US" & cases >0)
 ES <- ES[c(1,5:8)]
 
 ```
