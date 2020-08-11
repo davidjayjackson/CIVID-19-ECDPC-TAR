@@ -11,15 +11,19 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ggplot2)
+library(RSQLite)
 theme_set(theme_light())
 ```
 ```{r}
-rm(list=ls())
-DF <- read.csv("../DATA/COVID-19-ECDPC-2020-08-09.csv")
-DF$dateRep <- gsub("/","-",DF$dateRep)
-DF$dateRep <- as.Date(DF$dateRep,format="%m-%d-%Y")
-ES <- subset(DF,geoId =="US" & cases >0)
-ES <- ES[c(1,5:8)]
+
+db <- dbConnect(RSQLite::SQLite(),dbname= "../COVIDDB/COVID.sqlite3")
+dbListTables(db)
+```
+```{r}
+DF <-dbGetQuery(db,"select * from ECDC")
+DF$Reported <- as.Date(DF$Reported)
+ES <- subset(DF,Countries =="USA" & Cases >0)
+
 
 ```
 ```{r}
@@ -29,31 +33,31 @@ source("../TAR/R/hello.R")
 ## Calculate movingAverage and EMA
 
 ```{r}
-ES$RM <- movingAverage(ES$cases,7,center=TRUE)
-ES$EMA <- myEMA(price=ES$cases,n=7)
+ES$RM <- movingAverage(ES$Cases,7,center=TRUE)
+ES$EMA <- myEMA(price=ES$Cases,n=7)
 ```
 ```{r}
-ggplot(ES) + geom_line(aes(x=dateRep,y=cases,col="Cases")) +
- geom_line(aes(x=dateRep,y=RM,col="Rolling")) +
-  geom_line(aes(x=dateRep,y=EMA,col="EMS")) + 
+ggplot(ES) + geom_line(aes(x=Reported,y=Cases,col="Cases")) +
+ geom_line(aes(x=Reported,y=RM,col="Rolling")) +
+  geom_line(aes(x=Reported,y=EMA,col="EMS")) + 
   labs(title="COVID-19 Cases: Rolling Mean vs EMA")
 ```
 ```{r}
-ES$RMD <- movingAverage(ES$deaths,7,center=TRUE)
-ES$EMAD <- myEMA(price=ES$deaths,n=7)
+ES$RMD <- movingAverage(ES$Deaths,7,center=TRUE)
+ES$EMAD <- myEMA(price=ES$Deaths,n=7)
 ```
 ```{r}
-ggplot(ES) + geom_line(aes(x=dateRep,y=deaths,col="Deaths")) +
-  geom_line(aes(x=dateRep,y=RMD,col="Rolling")) +
-  geom_line(aes(x=dateRep,y=EMAD,col="EMS")) + 
+ggplot(ES) + geom_line(aes(x=Reported,y=Deaths,col="Deaths")) +
+  geom_line(aes(x=Reported,y=RMD,col="Rolling")) +
+  geom_line(aes(x=Reported,y=EMAD,col="EMS")) + 
   labs(title="COVID-19 Deaths: Rolling Mean vs EMA")
 ```
 ```{r}
-ggplot(ES) + geom_line(aes(x=dateRep,y=cases,col="Cases")) +
-  geom_smooth(aes(x=dateRep,y=cases,col="loess"))
+ggplot(ES) + geom_line(aes(x=Reported,y=Cases,col="Cases")) +
+  geom_smooth(aes(x=Reported,y=Cases,col="loess"))
 ```
 
 ```{r}
-ggplot(ES) + geom_line(aes(x=dateRep,y=deaths,col="Deaths")) +
-  geom_smooth(aes(x=dateRep,y=deaths,col="loess"))
+ggplot(ES) + geom_line(aes(x=Reported,y=Deaths,col="Deaths")) +
+  geom_smooth(aes(x=Reported,y=Deaths,col="loess"))
 ```
